@@ -1,0 +1,16 @@
+# Rahasia — JANGAN pernah di-commit
+config.json
+*.key
+*.keystore
+
+# State & log paper trading
+paper_state.json
+paper_history.json
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env

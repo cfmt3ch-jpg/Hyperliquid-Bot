@@ -95,13 +95,16 @@ Diatur di `AI_SETTINGS` dalam `config.py`:
 | Parameter | Default | Penjelasan |
 |-----------|---------|------------|
 | `max_leverage` | 5x | Leverage maksimal (usulan AI di-clamp ke sini) |
-| `max_position_pct` | 1% | Margin maksimal per trade (% nilai akun) |
+| `max_position_pct` | 5% | Margin maksimal per trade (% nilai akun) |
+| `min_stop_loss_pct` / `max_stop_loss_pct` | 0.5% / 10% | SL dari AI di-clamp ke rentang ini |
+| `min_risk_reward` | 1.0 | TP minimal = SL × rasio ini |
 | `max_daily_loss_pct` | 5% | Bot berhenti trading bila loss harian tembus ini |
 | `min_confidence` | 0.6 | Confidence minimal AI agar trade dieksekusi |
 | `max_open_positions` | 3 | Maksimal posisi terbuka bersamaan |
 | `require_stop_loss` | True | Stop loss wajib pada setiap posisi |
 | `coins` | BTC, ETH, SOL | Koin yang dipantau AI |
 | `loop_interval_seconds` | 300 | Jeda antar siklus keputusan |
+| `tp_sl_check_seconds` | 3 | Jeda cek TP/SL (thread cepat terpisah) |
 
 ---
 

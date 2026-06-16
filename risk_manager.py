@@ -41,6 +41,10 @@ class RiskManager:
         self.min_confidence = s["min_confidence"]
         self.max_open_positions = s["max_open_positions"]
         self.require_stop_loss = s["require_stop_loss"]
+        # Batas nilai SL & rasio R/R (default aman bila tidak diset)
+        self.min_stop_loss_pct = s.get("min_stop_loss_pct", 0.5)
+        self.max_stop_loss_pct = s.get("max_stop_loss_pct", 10.0)
+        self.min_risk_reward = s.get("min_risk_reward", 1.0)
 
     # ── Pengecekan tingkat akun (sebelum trade apa pun) ──
 
@@ -119,6 +123,23 @@ class RiskManager:
             return RiskDecision(False, "Stop loss wajib diisi tapi tidak ada.")
         tp_pct = decision.get("take_profit_pct")
 
+        # 5b. Clamp nilai SL ke rentang aman (cegah SL terlalu rapat/lebar)
+        notes = []
+        if sl_pct:
+            sl_pct = float(sl_pct)
+            clamped_sl = max(self.min_stop_loss_pct, min(sl_pct, self.max_stop_loss_pct))
+            if clamped_sl != sl_pct:
+                notes.append(f"SL {sl_pct}%→{clamped_sl}%")
+            sl_pct = clamped_sl
+
+        # 5c. Pastikan rasio risk/reward minimal (TP >= SL × min_risk_reward)
+        if sl_pct and tp_pct:
+            tp_pct = float(tp_pct)
+            min_tp = sl_pct * self.min_risk_reward
+            if tp_pct < min_tp:
+                notes.append(f"TP {tp_pct}%→{round(min_tp, 2)}% (R/R min {self.min_risk_reward})")
+                tp_pct = round(min_tp, 2)
+
         # 6. Hitung size dari aturan risiko (BUKAN dari AI)
         account_value = account["account_value"]
         margin_per_trade = account_value * (self.max_position_pct / 100.0)
@@ -147,6 +168,7 @@ class RiskManager:
         return RiskDecision(
             True,
             f"{action} {coin}: size {size:.6f} @ {leverage}x "
-            f"(margin ${margin_per_trade:.2f}, conf {confidence:.2f}).",
+            f"(margin ${margin_per_trade:.2f}, conf {confidence:.2f})"
+            + (f" [{'; '.join(notes)}]" if notes else "") + ".",
             order
         )

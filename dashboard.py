@@ -174,6 +174,9 @@ def api_ai_status():
             "max_daily_loss_pct": risk.max_daily_loss_pct,
             "min_confidence": risk.min_confidence,
             "max_open_positions": risk.max_open_positions,
+            "min_stop_loss_pct": risk.min_stop_loss_pct,
+            "max_stop_loss_pct": risk.max_stop_loss_pct,
+            "min_risk_reward": risk.min_risk_reward,
         },
     })
 
@@ -454,6 +457,8 @@ DASHBOARD_HTML = r"""
             <div class="guardrail-row"><span class="guardrail-label">Loss harian maks</span><span id="g-loss">5%</span></div>
             <div class="guardrail-row"><span class="guardrail-label">Confidence min</span><span id="g-conf">0.6</span></div>
             <div class="guardrail-row"><span class="guardrail-label">Posisi terbuka maks</span><span id="g-maxpos">3</span></div>
+            <div class="guardrail-row"><span class="guardrail-label">Rentang SL</span><span id="g-sl">0.5% - 10%</span></div>
+            <div class="guardrail-row"><span class="guardrail-label">Risk/Reward min</span><span id="g-rr">1.0</span></div>
         </div>
 
         <!-- Prices -->
@@ -610,6 +615,10 @@ DASHBOARD_HTML = r"""
             document.getElementById('g-loss').textContent = `${g.max_daily_loss_pct}%`;
             document.getElementById('g-conf').textContent = g.min_confidence;
             document.getElementById('g-maxpos').textContent = g.max_open_positions;
+            if (g.min_stop_loss_pct !== undefined) {
+                document.getElementById('g-sl').textContent = `${g.min_stop_loss_pct}% - ${g.max_stop_loss_pct}%`;
+                document.getElementById('g-rr').textContent = g.min_risk_reward;
+            }
 
             // Daily PnL bar
             const dp = s.daily_pnl_pct || 0;

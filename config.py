@@ -63,8 +63,16 @@ AI_SETTINGS = {
     # ── GUARDRAIL RISIKO (aturan keras) ──
     # Leverage maksimal yang diizinkan (AI tidak boleh melebihi ini)
     "max_leverage": 5,
-    # Margin maksimal per trade sebagai % dari nilai akun (1% = sangat konservatif)
-    "max_position_pct": 1.0,
+    # Margin maksimal per trade sebagai % dari nilai akun.
+    # Dinaikkan dari 1% → 5% agar notional (5% × 5x = 25% modal) memenuhi
+    # minimum order Hyperliquid dan risiko/trade tetap modest (~0.5% di SL 2%).
+    "max_position_pct": 5.0,
+    # Batas nilai stop loss (%). SL dari AI di-clamp ke rentang ini agar
+    # tidak terlalu rapat (kena noise) atau terlalu lebar (loss besar).
+    "min_stop_loss_pct": 0.5,
+    "max_stop_loss_pct": 10.0,
+    # Rasio risk/reward minimal: take_profit_pct >= stop_loss_pct × nilai ini.
+    "min_risk_reward": 1.0,
     # Maksimal kerugian harian sebagai % dari ekuitas awal hari itu.
     # Jika tercapai, bot BERHENTI trading sampai hari berganti.
     "max_daily_loss_pct": 5.0,

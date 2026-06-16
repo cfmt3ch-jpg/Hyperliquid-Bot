@@ -58,7 +58,7 @@ AI_SETTINGS = {
     # (DeepSeek, OpenAI, OpenRouter, Groq, Together, Ollama, dll).
     # Cukup ganti base_url + model di sini, dan API key di config.json ("api_key").
     "base_url": "https://api.deepseek.com",
-    "model": "deepseek-chat",
+    "model": "deepseek-v4-pro",
     # Set False bila provider tak mendukung response_format JSON (mis. Ollama lama).
     "use_response_format": True,
 

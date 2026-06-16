@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-🧠 AI Trading Dashboard — DeepSeek (Paper Trading)
+🧠 AI Trading Dashboard — LLM (Paper Trading)
 ===================================================
-Dashboard monitor untuk sistem AI-driven. AI (DeepSeek) memutuskan,
+Dashboard monitor untuk sistem AI-driven. AI (LLM) memutuskan,
 RiskManager memvalidasi, PaperTradingEngine mengeksekusi (simulasi).
 
 Fitur:
@@ -31,11 +31,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from paper_trading import PaperTradingEngine
 from ai_context import build_context
-from ai_trader import DeepSeekTrader
+from ai_trader import LLMTrader
 from risk_manager import RiskManager
 from ai_loop import AITradingLoop
 from decision_logger import DecisionLogger
-from config import AI_SETTINGS
+from config import AI_SETTINGS, get_llm_config
 import evaluate as evaluator
 
 app = Flask(__name__)
@@ -49,7 +49,7 @@ decision_logger = DecisionLogger()
 AI_AVAILABLE = True
 AI_INIT_ERROR = ""
 try:
-    trader = DeepSeekTrader()
+    trader = LLMTrader()
     loop = AITradingLoop(engine, trader, risk, decision_logger)
     # Monitor TP/SL cepat berjalan terus (menegakkan SL walau loop AI berhenti)
     loop.start_monitor()
@@ -160,8 +160,8 @@ def api_ai_status():
         "init_error": AI_INIT_ERROR,
         "running": ai_state["running"],
         "interval": ai_state["interval"],
-        "model": AI_SETTINGS["model"],
-        "provider": AI_SETTINGS["provider"],
+        "model": get_llm_config()["model"],
+        "base_url": get_llm_config()["base_url"],
         "daily_pnl_pct": round(daily_pnl_pct, 2),
         "halted": halted,
         "day_start_equity": round(loop.day_start_equity, 4) if loop else account_value,
@@ -402,7 +402,7 @@ DASHBOARD_HTML = r"""
 </head>
 <body>
     <div class="header">
-        <h1>🧠 AI Trading Dashboard — DeepSeek</h1>
+        <h1>🧠 AI Trading Dashboard</h1>
         <div class="badges">
             <span class="badge pulse">● Live (Paper)</span>
             <span class="badge" id="ai-badge">AI: OFF</span>
@@ -708,12 +708,12 @@ DASHBOARD_HTML = r"""
 if __name__ == "__main__":
     print()
     print("╔══════════════════════════════════════════════════════════════╗")
-    print("║      🧠 AI Trading Dashboard — DeepSeek (Paper)           ║")
+    print("║      🧠 AI Trading Dashboard — LLM (Paper)               ║")
     print("║      💰 Modal: $100 | Risiko: 5x / 1% / loss harian 5%    ║")
     print("╠══════════════════════════════════════════════════════════════╣")
     print("║   🌐 Buka browser: http://127.0.0.1:5000                   ║")
     if not AI_AVAILABLE:
-        print("║   ⚠️  AI nonaktif: API key DeepSeek belum diisi            ║")
+        print("║   ⚠️  AI nonaktif: API key LLM belum diisi                 ║")
     print("║   Ctrl+C untuk berhenti                                    ║")
     print("╚══════════════════════════════════════════════════════════════╝")
     print()

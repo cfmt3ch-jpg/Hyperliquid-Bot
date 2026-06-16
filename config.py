@@ -1,7 +1,6 @@
 """
 Konfigurasi untuk Hyperliquid Trading Bot
 ==========================================
-Master Caesar: Edit file config.json dengan data wallet Anda!
 """
 
 import json
@@ -50,22 +49,23 @@ TRADING_SETTINGS = {
     "use_testnet": True,
 }
 
-# ── Pengaturan AI Trader (DeepSeek) ─────────────────────────────
+# ── Pengaturan AI Trader ────────────────────────────────────────
 # Otak AI yang memutuskan trade secara dinamis (bukan strategi tetap).
 # Guardrail risiko di bawah ini WAJIB dan tidak boleh dilewati AI.
 
 AI_SETTINGS = {
-    # Provider LLM (OpenAI-compatible)
-    "provider": "deepseek",
-    "model": "deepseek-chat",
+    # Pengaturan LLM — bisa pakai provider APA SAJA yang OpenAI-compatible
+    # (DeepSeek, OpenAI, OpenRouter, Groq, Together, Ollama, dll).
+    # Cukup ganti base_url + model di sini, dan API key di config.json ("api_key").
     "base_url": "https://api.deepseek.com",
+    "model": "deepseek-chat",
+    # Set False bila provider tak mendukung response_format JSON (mis. Ollama lama).
+    "use_response_format": True,
 
     # ── GUARDRAIL RISIKO (aturan keras) ──
     # Leverage maksimal yang diizinkan (AI tidak boleh melebihi ini)
     "max_leverage": 5,
     # Margin maksimal per trade sebagai % dari nilai akun.
-    # Dinaikkan dari 1% → 5% agar notional (5% × 5x = 25% modal) memenuhi
-    # minimum order Hyperliquid dan risiko/trade tetap modest (~0.5% di SL 2%).
     "max_position_pct": 5.0,
     # Batas nilai stop loss (%). SL dari AI di-clamp ke rentang ini agar
     # tidak terlalu rapat (kena noise) atau terlalu lebar (loss besar).
@@ -100,16 +100,30 @@ AI_SETTINGS = {
 }
 
 
-def get_deepseek_api_key():
-    """Ambil DeepSeek API key dari config.json atau environment variable."""
-    key = os.environ.get("DEEPSEEK_API_KEY", "")
+def get_api_key() -> str:
+    """Ambil API key LLM dari env (LLM_API_KEY) atau config.json ("api_key")."""
+    key = os.environ.get("LLM_API_KEY", "")
     if key:
         return key
     try:
         cfg = load_config()
-        return cfg.get("deepseek_api_key", "")
     except FileNotFoundError:
         return ""
+    return (
+        cfg.get("api_key", "")
+        or cfg.get("llm_api_key", "")
+    )
+
+
+def get_llm_config() -> dict:
+    """Konfigurasi LLM aktif (base_url, model, api_key) — provider apa pun."""
+    return {
+        "base_url": AI_SETTINGS["base_url"],
+        "model": AI_SETTINGS["model"],
+        "api_key": get_api_key(),
+        "use_response_format": AI_SETTINGS.get("use_response_format", True),
+    }
+
 
 # ── Peringatan Keamanan ─────────────────────────────────────────
 SECURITY_NOTES = """

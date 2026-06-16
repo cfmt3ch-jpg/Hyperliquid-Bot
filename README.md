@@ -1,9 +1,11 @@
-# 🧠 AI Trading Bot — Hyperliquid (DeepSeek)
+# 🧠 AI Trading Bot — Hyperliquid
 ### Dibuat oleh AIsha untuk Master Caesar
 
 Bot trading **AI-driven** untuk **Hyperliquid DEX** (perpetual futures).
-AI (DeepSeek) yang memutuskan trade secara dinamis — bukan strategi tetap.
-Setiap keputusan AI divalidasi oleh **Risk Manager** sebelum dieksekusi.
+AI (LLM) yang memutuskan trade secara dinamis — bukan strategi tetap.
+Mendukung provider LLM apa pun yang OpenAI-compatible (DeepSeek, OpenAI,
+OpenRouter, Groq, Together, Ollama, dll). Setiap keputusan AI divalidasi
+oleh **Risk Manager** sebelum dieksekusi.
 
 ---
 
@@ -21,7 +23,7 @@ Jangan pindah ke uang asli sebelum yakin dengan perilaku AI.
 ## 🧩 Cara Kerja (Alur AI-Driven)
 
 ```
-Data pasar + status akun  →  AI (DeepSeek) mengusulkan keputusan
+Data pasar + status akun  →  AI (LLM) mengusulkan keputusan
                           →  Risk Manager memvalidasi (guardrail keras)
                           →  Engine mengeksekusi (simulasi paper trading)
                           →  TP/SL dikelola otomatis tiap siklus
@@ -39,7 +41,7 @@ AI **tidak pernah** menentukan ukuran posisi — itu dihitung Risk Manager.
 python -m pip install -r requirements.txt
 ```
 
-### 2. Konfigurasi API Key DeepSeek
+### 2. Konfigurasi API Key LLM
 Salin template lalu isi:
 ```bash
 copy config.json.example config.json
@@ -50,14 +52,18 @@ Edit `config.json`:
     "account_address": "",
     "secret_key": "",
     "keystore_path": "",
-    "deepseek_api_key": "sk-...kunci_deepseek_anda..."
+    "api_key": "sk-...kunci_provider_anda..."
 }
 ```
-Untuk **paper trading**, cukup isi `deepseek_api_key`. Field wallet boleh kosong.
+Untuk **paper trading**, cukup isi `api_key`. Field wallet boleh kosong.
+
+Pilih provider di `config.py` (`AI_SETTINGS`) dengan mengatur `base_url` dan `model`.
+Contoh: DeepSeek (`https://api.deepseek.com`, `deepseek-chat`), OpenAI
+(`https://api.openai.com/v1`, `gpt-4o-mini`), Groq, OpenRouter, atau Ollama lokal.
 
 Alternatif (lebih aman) — environment variable:
 ```powershell
-setx DEEPSEEK_API_KEY "sk-...kunci_anda..."
+setx LLM_API_KEY "sk-...kunci_anda..."
 ```
 
 ---
@@ -116,7 +122,7 @@ Hyperliquid-Bot/
 ├── config.json           ← Config Anda (JANGAN share!)
 ├── config.py             ← Pengaturan + guardrail AI (AI_SETTINGS)
 ├── ai_context.py         ← Kumpulkan data pasar+akun untuk AI
-├── ai_trader.py          ← Klien DeepSeek (keputusan JSON terstruktur)
+├── ai_trader.py          ← Klien LLM generik (keputusan JSON terstruktur)
 ├── risk_manager.py       ← Validasi keras keputusan AI + hitung size
 ├── ai_loop.py            ← Orkestrasi loop AI (CLI)
 ├── dashboard.py          ← Dashboard web AI-driven (Flask)
@@ -148,7 +154,7 @@ Hyperliquid-Bot/
 ## 📚 Referensi
 
 - [Hyperliquid Docs](https://hyperliquid.gitbook.io/hyperliquid-docs)
-- [DeepSeek API Docs](https://api-docs.deepseek.com)
+- Provider LLM apa pun yang OpenAI-compatible (DeepSeek, OpenAI, OpenRouter, Groq, Together, Ollama, dll)
 - [Hyperliquid App](https://app.hyperliquid.xyz)
 
 ---

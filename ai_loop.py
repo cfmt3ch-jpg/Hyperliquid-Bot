@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-🧠 AI Trading Loop (DeepSeek) — Fase 1: Paper Trading
+🧠 AI Trading Loop (LLM) — Fase 1: Paper Trading
 ======================================================
 Menjalankan siklus keputusan AI di atas PaperTradingEngine (uang virtual,
 harga real-time). AI memutuskan, RiskManager memvalidasi, engine eksekusi.
@@ -20,7 +20,7 @@ from datetime import datetime, date
 
 from paper_trading import PaperTradingEngine
 from ai_context import build_context
-from ai_trader import DeepSeekTrader
+from ai_trader import LLMTrader
 from risk_manager import RiskManager
 from decision_logger import DecisionLogger
 from config import AI_SETTINGS
@@ -260,7 +260,7 @@ class AITradingLoop:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="🧠 AI Trading Loop (DeepSeek) — Paper")
+    parser = argparse.ArgumentParser(description="🧠 AI Trading Loop (LLM) — Paper")
     parser.add_argument("--once", action="store_true", help="Jalankan satu siklus saja")
     args = parser.parse_args()
 
@@ -268,7 +268,7 @@ def main():
     engine = PaperTradingEngine(initial_balance=INITIAL_BALANCE)
 
     try:
-        trader = DeepSeekTrader()
+        trader = LLMTrader()
     except ValueError as e:
         print(e)
         sys.exit(1)

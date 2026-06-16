@@ -1,8 +1,10 @@
 """
-AI Trader (DeepSeek)
-====================
-Mengirim konteks pasar+akun ke DeepSeek dan menerima keputusan trading
-terstruktur (JSON). DeepSeek menggunakan API yang kompatibel dengan OpenAI.
+AI Trader (LLM generik)
+=======================
+Mengirim konteks pasar+akun ke LLM dan menerima keputusan trading
+terstruktur (JSON). Bekerja dengan provider APA SAJA yang OpenAI-compatible
+(DeepSeek, OpenAI, OpenRouter, Groq, Together, Ollama, dll) — cukup atur
+base_url, model, dan api_key di config.
 
 AI hanya MENGUSULKAN. Keputusan akhir & ukuran posisi divalidasi oleh
 RiskManager. AI tidak pernah menentukan size.
@@ -12,7 +14,7 @@ import json
 import urllib.request
 import urllib.error
 
-from config import AI_SETTINGS, get_deepseek_api_key
+from config import get_llm_config
 
 
 SYSTEM_PROMPT = """Anda adalah asisten analis trading untuk perpetual futures di Hyperliquid.
@@ -59,21 +61,22 @@ PEDOMAN UMUM:
 """
 
 
-class DeepSeekTrader:
+class LLMTrader:
     def __init__(self, api_key: str = None, settings: dict = None):
-        self.settings = settings or AI_SETTINGS
-        self.api_key = api_key or get_deepseek_api_key()
+        cfg = get_llm_config()
+        self.base_url = (cfg["base_url"] or "").rstrip("/")
+        self.model = cfg["model"]
+        self.use_response_format = cfg["use_response_format"]
+        self.api_key = api_key or cfg["api_key"]
         if not self.api_key:
             raise ValueError(
-                "❌ DeepSeek API key kosong! Isi 'deepseek_api_key' di config.json "
-                "atau set environment variable DEEPSEEK_API_KEY."
+                "❌ API key LLM kosong! Isi 'api_key' di config.json "
+                "atau set environment variable LLM_API_KEY."
             )
-        self.model = self.settings["model"]
-        self.base_url = self.settings["base_url"].rstrip("/")
 
     def decide(self, context: dict) -> dict:
         """
-        Kirim konteks ke DeepSeek, kembalikan keputusan terstruktur.
+        Kirim konteks ke LLM, kembalikan keputusan terstruktur.
 
         Returns:
             dict keputusan (lihat skema di SYSTEM_PROMPT).
@@ -91,19 +94,21 @@ class DeepSeekTrader:
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_msg},
             ],
-            "response_format": {"type": "json_object"},
             "temperature": 0.3,
             "max_tokens": 500,
         }
+        # response_format JSON tidak didukung semua provider; opsional.
+        if self.use_response_format:
+            payload["response_format"] = {"type": "json_object"}
 
         try:
             raw = self._post("/chat/completions", payload)
             content = raw["choices"][0]["message"]["content"]
-            decision = json.loads(content)
+            decision = self._extract_json(content)
             return self._normalize(decision)
         except (urllib.error.URLError, urllib.error.HTTPError) as e:
-            return self._fallback(f"Koneksi DeepSeek gagal: {e}")
-        except (KeyError, json.JSONDecodeError) as e:
+            return self._fallback(f"Koneksi LLM gagal: {e}")
+        except (KeyError, ValueError, json.JSONDecodeError) as e:
             return self._fallback(f"Gagal parse respons AI: {e}")
 
     # ── Internal ──
@@ -120,6 +125,33 @@ class DeepSeekTrader:
         )
         with urllib.request.urlopen(req, timeout=60) as resp:
             return json.loads(resp.read().decode("utf-8"))
+
+    @staticmethod
+    def _extract_json(text: str) -> dict:
+        """Ekstrak objek JSON dari respons, toleran terhadap fence/teks tambahan."""
+        text = (text or "").strip()
+        if text.startswith("```"):
+            text = text.strip("`")
+            if text[:4].lower() == "json":
+                text = text[4:]
+            text = text.strip()
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
+        # Cari blok { ... } seimbang pertama
+        start = text.find("{")
+        if start == -1:
+            raise ValueError("Tidak ada objek JSON di respons")
+        depth = 0
+        for i in range(start, len(text)):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    return json.loads(text[start:i + 1])
+        raise ValueError("JSON tidak lengkap di respons")
 
     @staticmethod
     def _normalize(decision: dict) -> dict:

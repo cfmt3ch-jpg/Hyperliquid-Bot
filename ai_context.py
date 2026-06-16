@@ -2,7 +2,7 @@
 AI Context Builder
 ==================
 Mengumpulkan dan memformat data pasar + status akun menjadi konteks
-yang siap dikirim ke AI (DeepSeek) untuk pengambilan keputusan trading.
+yang siap dikirim ke AI (LLM) untuk pengambilan keputusan trading.
 
 Indikator yang disediakan ke AI:
 - Price action (open/high/low/close) + perubahan %

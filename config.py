@@ -61,6 +61,9 @@ AI_SETTINGS = {
     "model": "deepseek-v4-pro",
     # Set False bila provider tak mendukung response_format JSON (mis. Ollama lama).
     "use_response_format": True,
+    # Batas token output. Model reasoning (mis. deepseek-v4-pro) memakai
+    # sebagian token untuk "berpikir", jadi butuh nilai besar agar JSON tetap muat.
+    "max_tokens": 3000,
 
     # ── GUARDRAIL RISIKO (aturan keras) ──
     # Leverage maksimal yang diizinkan (AI tidak boleh melebihi ini)
@@ -122,6 +125,7 @@ def get_llm_config() -> dict:
         "model": AI_SETTINGS["model"],
         "api_key": get_api_key(),
         "use_response_format": AI_SETTINGS.get("use_response_format", True),
+        "max_tokens": AI_SETTINGS.get("max_tokens", 3000),
     }
 
 

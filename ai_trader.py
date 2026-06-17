@@ -67,6 +67,7 @@ class LLMTrader:
         self.base_url = (cfg["base_url"] or "").rstrip("/")
         self.model = cfg["model"]
         self.use_response_format = cfg["use_response_format"]
+        self.max_tokens = cfg.get("max_tokens", 3000)
         self.api_key = api_key or cfg["api_key"]
         if not self.api_key:
             raise ValueError(
@@ -95,7 +96,7 @@ class LLMTrader:
                 {"role": "user", "content": user_msg},
             ],
             "temperature": 0.3,
-            "max_tokens": 500,
+            "max_tokens": self.max_tokens,
         }
         # response_format JSON tidak didukung semua provider; opsional.
         if self.use_response_format:
